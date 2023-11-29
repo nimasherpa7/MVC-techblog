@@ -5,64 +5,64 @@ const cancelBtn = document.querySelector("#cancelPost");
 const updateBtn = document.querySelector("#updatePost");
 const deleteBtn = document.querySelector("#deletePost");
 
+const getIdFromPathname = () => document.location.pathname.split("/").at(-1);
+
+const redirectToDashboard = () => document.location.replace("/dashboard");
+
+const showAlert = (message) => alert(message);
+
+const handlePostRequest = async (url, method, bodyData) => {
+    const response = await fetch(url, {
+        method,
+        body: JSON.stringify(bodyData),
+        headers: { "Content-Type": "application/json" },
+    });
+
+    return response;
+};
 
 const cancelPostHandler = async (event) => {
     event.preventDefault();
-    document.location.replace("/dashboard");
-}
+    redirectToDashboard();
+};
 
 const updatePostHandler = async (event) => {
     event.preventDefault();
     const title = titleEl.value;
     const content = contentEl.value;
-    if (title.length > 0 && content.length > 0) {
-        const id = document.location.pathname.split("/").at(-1);
-        const response = await fetch(`/dashboard/post/${id}`, {
-            method: "PUT",
-            body: JSON.stringify({ title, content }),
-            headers: { "Content-Type": "application/json" },
-        });
 
-        if (response.ok) document.location.replace(`/dashboard`);
-        else alert("Failed to update post.");
+    if (title.length > 0 && content.length > 0) {
+        const id = getIdFromPathname();
+        const response = await handlePostRequest(`/dashboard/post/${id}`, "PUT", { title, content });
+
+        if (response.ok) redirectToDashboard();
+        else showAlert("Failed to update post.");
     } else {
-        alert("THE post must have a title and contents");
+        showAlert("The post must have a title and contents");
     }
-}
+};
 
 const deletePostHandler = async (event) => {
     event.preventDefault();
+    const id = getIdFromPathname();
+    const response = await handlePostRequest(`/dashboard/post/${id}`, "DELETE", {});
 
-    const id = document.location.pathname.split("/").at(-1);
-    const response = await fetch(`/dashboard/post/${id}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-    });
-
-    if (response.ok) document.location.replace("/dashboard");
-    else alert("Failed to delete post.");
-}
+    if (response.ok) redirectToDashboard();
+    else showAlert("Failed to delete post.");
+};
 
 const createPostHandler = async (event) => {
     const title = titleEl.value;
     const content = contentEl.value;
     event.preventDefault();
+
     if (title.length > 0 && content.length > 0) {
+        const response = await handlePostRequest("/dashboard/post", "POST", { title, content });
 
-        const response = await fetch("/dashboard/post", {
-            method: "POST",
-            body: JSON.stringify({ title, content }),
-            headers: { "Content-Type": "application/json" },
-        });
-
-        if (response.ok) {
-            document.location.replace(`/dashboard`);
-        } else {
-            alert("Failed to create post.");
-        }
-
+        if (response.ok) redirectToDashboard();
+        else showAlert("Failed to create post.");
     }
-}
+};
 
 if (createLink) {
     createLink.addEventListener("click", createPostHandler);
